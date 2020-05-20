@@ -45,6 +45,8 @@ URL = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
 EXCEPTIONS = set([IOError, FileNotFoundError, exceptions.RequestException, exceptions.HTTPError,
 exceptions.ConnectionError, exceptions.Timeout])
 
+#TODO add check to see if input filepath (directory exists), if not then create directory to prevent errors
+
 #Store the query term in a variable for convenience and set search headers as well as parameters
 query = args["query"]
 headers = {"Ocp-Apim-Subscription-Key": API_KEY}
@@ -83,8 +85,15 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
             data = requests.get(d["contentUrl"], timeout=30)
 
             #Build the path to the output image
-            ext = d["contentUrl"][d["contentUrl"].rfind('.'):]
+            contentUrl = d["contentUrl"]
+            periodIndex = contentUrl.rfind(".")
+            ext = contentUrl[periodIndex : periodIndex + 4]
+
+            if (ext[-1] != 'g' and ext[-1] != 'G'):
+                ext = contentUrl[periodIndex : periodIndex + 5]
+
             path = os.path.sep.join([args["output"], "{}{}".format(str(total).zfill(8), ext)])
+            print("[INFO] Printing filesave path: {}".format(path))
 
             file = open(path, 'wb')
             file.write(data.content)
@@ -106,5 +115,7 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
 
         #Update the counter
         total += 1
+
+print("[INFO] DONE SAVING YOUR DATASET. Enjoy :)")
 
 
