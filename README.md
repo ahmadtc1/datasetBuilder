@@ -3,6 +3,7 @@
 🗂 A convenient utility for building your datasets with ease
 
   ## Live Demo
+![Live Demo](https://github.com/ahmadtc1/datasetBuilder/blob/master/img/datasetBuilder.gif)
 
 
 ## How to Use it?
