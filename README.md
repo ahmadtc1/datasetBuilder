@@ -42,10 +42,10 @@ optional arguments:
 ```
 then allowing you to use the file to generate your encrypted key
 ```
-python3 -k YOUR_API_KEY
+python3 encrypt.py -k YOUR_API_KEY
 
 eg.
-python3 -k a123456b78910
+python3 encrypt.py -k a123456b78910
 ```
 
 ### Now Let's Generate Your Dataset :)
@@ -65,7 +65,7 @@ optional arguments:
 ```
 For example if I wanted to build a dataset of 300 cockatiel images in an output folder named dataset, I would run
 ```
-python3 -q cockatiel -o dataset/ -m 300
+python3 buildDataset.py -q cockatiel -o dataset/ -m 300
 ```
 Now sit back and watch your dataset appear :)
 
