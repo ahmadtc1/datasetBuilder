@@ -6,6 +6,8 @@ import cv2
 from requests import exceptions
 import argparse
 import os
+import os.path
+from os import path
 import logging
 
 #Set up for fresh logging
@@ -42,7 +44,7 @@ print("[INFO] your decrypted api key is {}".format(decoded))
 #Set some constant variables and the endpoint url for the api
 API_KEY = decoded
 MAX_RESULTS = args["max"]
-GROUP_SIZE = 50
+GROUP_SIZE = 50 if MAX_RESULTS >= 50 else MAX_RESULTS
 URL = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
 
 
@@ -56,7 +58,15 @@ exceptions.ConnectionError, exceptions.Timeout])
 query = args["query"]
 headers = {"Ocp-Apim-Subscription-Key": API_KEY}
 params = {"q": query, "offset": 0, "count": GROUP_SIZE}
-path = None
+filepath = None
+outputPath = args["output"]
+
+if not os.path.exists(outputPath):
+    logging.info("Output directory does not exist. Creating output directory")
+    os.mkdir(outputPath)
+    logging.info("Successfully created output directory: %s", outputPath)
+else:
+    logging.info("Output directory %s exists", outputPath)
 
 #Query the api to request our data
 print("[INFO] querying Bing API for {}".format(query))
@@ -99,10 +109,10 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
             if (ext[-1] != 'g' and ext[-1] != 'G'):
                 ext = contentUrl[periodIndex : periodIndex + 5]
 
-            path = os.path.sep.join([args["output"], "{}{}".format(str(total).zfill(8), ext)])
-            logging.info("[%d / %d] filesave path: %s", total, estimatedResultsNum, path)
+            filepath = os.path.sep.join([args["output"], "{}{}".format(str(total).zfill(8), ext)])
+            logging.info("[%d / %d] filesave path: %s", total, estimatedResultsNum, filepath)
 
-            file = open(path, 'wb')
+            file = open(filepath, 'wb')
             file.write(data.content)
             file.close()
 
@@ -113,12 +123,12 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
                 continue
 
         #Try to load the image from the disk
-        image = cv2.imread(path)
+        image = cv2.imread(filepath)
 
         if (image is None):
             try:
-                logging.info("deleting %s", path)
-                os.remove(path)
+                logging.info("deleting %s", filepath)
+                os.remove(filepath)
                 continue
             except Exception as e:
                 logging.error("failed to remove file, path does not exist")
@@ -129,5 +139,3 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
 
 print("[INFO] DONE SAVING YOUR DATASET. Enjoy :)")
 logging.info("Completed saving dataset")
-
-
