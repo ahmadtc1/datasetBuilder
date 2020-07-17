@@ -9,16 +9,37 @@ import os
 import os.path
 from os import path
 import logging
+import PySimpleGUI as sg
 
 #Set up for fresh logging
 logging.basicConfig(filename="runtime.log", level=logging.INFO, filemode='w')
 
-#Handle argument parsing
-ap = argparse.ArgumentParser()
-ap.add_argument("-q", "--query", required=True, help="query to search BING Image API for")
-ap.add_argument("-o", "--output", required=True, help="path to the output images directory")
-ap.add_argument("-m", "--max", required=False, type=int, default=200, help="desired dataset size")
-args = vars(ap.parse_args())
+# Deprecating command-line argument parsing, moving to GUI
+# Handle argument parsing
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-q", "--query", required=True, help="query to search BING Image API for")
+# ap.add_argument("-o", "--output", required=True, help="path to the output images directory")
+# ap.add_argument("-m", "--max", required=False, type=int, default=200, help="desired dataset size")
+# args = vars(ap.parse_args())
+
+sg.theme('Topanga')
+
+form = sg.FlexForm('dataset builder params')
+
+layout =[[sg.Text('Query', text_color='white', size=(25, 1)), 
+            sg.InputText("", text_color="white", key='query')],
+	[sg.Text('Dataset Size', text_color='white', size=(25, 1)),
+            sg.InputText("", text_color="white", key='datasetSize')],
+    [sg.Text('Output Folder', text_color='white', size=(25, 1)),
+            sg.InputText("", text_color="white", key='output')],
+    [sg.Submit(), sg.Cancel()],
+	]
+window = sg.Window('datasetBuilder', layout)
+
+button,values = window.Read()
+
+print(button, values['query'],values['datasetSize'] )
+# quit()
 
 #Handle the intake and decryption of the previously encrypted api key
 #Obtain the key used for encrypting
@@ -37,13 +58,13 @@ fernet = Fernet(key)
 #Decrypt the encrypted api key
 decrypted = fernet.decrypt(apikeyEncrypted)
 decoded = decrypted.decode()
-logging.info("your decrypted api key is %s", decoded)
-print("[INFO] your decrypted api key is {}".format(decoded))
+logging.info("your decrypted api key is: %s", decoded)
+print("[INFO] your decrypted api key is: {}".format(decoded))
 
 
 #Set some constant variables and the endpoint url for the api
 API_KEY = decoded
-MAX_RESULTS = args["max"]
+MAX_RESULTS = int(values["datasetSize"])
 GROUP_SIZE = 50 if MAX_RESULTS >= 50 else MAX_RESULTS
 URL = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
 
@@ -55,11 +76,11 @@ exceptions.ConnectionError, exceptions.Timeout])
 #TODO add check to see if input filepath (directory exists), if not then create directory to prevent errors
 
 #Store the query term in a variable for convenience and set search headers as well as parameters
-query = args["query"]
+query = values["query"]
 headers = {"Ocp-Apim-Subscription-Key": API_KEY}
 params = {"q": query, "offset": 0, "count": GROUP_SIZE}
 filepath = None
-outputPath = args["output"]
+outputPath = values["output"]
 
 if not os.path.exists(outputPath):
     logging.info("Output directory does not exist. Creating output directory")
@@ -109,7 +130,7 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
             if (ext[-1] != 'g' and ext[-1] != 'G'):
                 ext = contentUrl[periodIndex : periodIndex + 5]
 
-            filepath = os.path.sep.join([args["output"], "{}{}".format(str(total).zfill(8), ext)])
+            filepath = os.path.sep.join([values["output"], "{}{}".format(str(total).zfill(8), ext)])
             logging.info("[%d / %d] filesave path: %s", total, estimatedResultsNum, filepath)
 
             file = open(filepath, 'wb')
@@ -139,3 +160,6 @@ for offset in range(0, estimatedResultsNum, GROUP_SIZE):
 
 print("[INFO] DONE SAVING YOUR DATASET. Enjoy :)")
 logging.info("Completed saving dataset")
+sg.Popup("Successfully built your {} dataset :)".format(values['query']), title="Success")
+
+quit()
