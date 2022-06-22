@@ -3,7 +3,7 @@ cffi==1.14.0
 chardet==3.0.4
 cryptography==3.3.2
 idna==2.9
-numpy==1.18.4
+numpy==1.22.0
 opencv-contrib-python==4.2.0.34
 pycparser==2.20
 requests==2.23.0
